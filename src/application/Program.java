@@ -7,6 +7,7 @@ import enums.PaymentMethod;
 import enums.RoomType;
 import services.PaymentService;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 import java.time.format.DateTimeFormatter;
@@ -40,19 +41,34 @@ public class Program {
         System.out.print("Informe a data de check out: (dd/MM/yyyy HH:mm) ");
         LocalDateTime checkOut = LocalDateTime.parse(sc.nextLine(), fmt);
 
-        Reservation reservation = new Reservation(checkIn, checkOut, hotelRoom, null);
+
+
+     Duration duration = Duration.between(checkIn, checkOut);
+        long quantidadeDias = duration.toDays();
+
+        Reservation reservation = new Reservation(checkIn, checkOut, hotelRoom, null );
         System.out.print("Você deseja pagar no DEBIT OU CREDIT?");
         String paymentmethod = sc.nextLine();
 
         PaymentService service = new PaymentService();
+        double basicPayment = quantidadeDias * pricePerNight;
 
 
         PaymentMethod paymentMethod = PaymentMethod.valueOf(paymentmethod);
-        double total = service.calcularPagamento(reservation, paymentMethod);
+        double total = service.calcularPagamento(basicPayment, paymentMethod);
 
 
+        double tax = total - basicPayment;
 
+        Invoice invoice = new Invoice(basicPayment, tax, total);
 
+        reservation.setInvoice(invoice);
+
+        System.out.println("FATURA : ");
+        System.out.println("Quantidade de diárias: " + quantidadeDias);
+        System.out.println("Pagamento BÁSICO: " + invoice.getBasicPayment());
+        System.out.println("Imposto: " + invoice.getTax());
+        System.out.println("PAGAMENTO TOTAL: " + invoice.getTotalPayment());
 
         sc.close();
     }
